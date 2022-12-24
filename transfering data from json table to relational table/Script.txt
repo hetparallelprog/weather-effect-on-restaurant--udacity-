@@ -1,0 +1,186 @@
+//===========================================================================
+// YELP_ACADEMIC_DATASET_USER
+create or replace table ODS.PUBLIC.ACADEMIC_USER
+(
+	user_id  varchar(22) primary key ,
+	name varchar (50) ,
+	review_count INT ,
+	yelping_since DATE ,
+	useful INT ,
+	funny INT ,
+	cool INT , 
+	elite varchar , 
+	friends varchar ,
+	fans INT ,
+	average_stars float ,
+	compliment_more INT ,
+	compliment_hot INT ,
+	compliment_profile INT ,
+	compliment_cute INT ,
+	compliment_list  INT ,
+	compliment_note  INT ,
+	compliment_plain  INT ,
+	compliment_cool  INT ,
+	compliment_funny  INT ,
+	compliment_writer  INT ,
+	compliment_photos  INT ,
+);
+
+insert into ODS.PUBLIC.ACADEMIC_USER( user_id,name,review_count,yelping_since,useful,funny,cool,elite,friends ,fans ,average_stars,compliment_hot,
+	compliment_more,compliment_profile,compliment_cute ,compliment_list ,compliment_note ,compliment_plain ,compliment_cool ,compliment_funny  ,compliment_writer ,
+	compliment_photos  )
+select $1:user_id,$1:name,$1:review_count,$1:yelping_since,$1:useful,$1:funny,$1:cool,$1:elite,$1:friends ,$1:fans ,$1:average_stars,$1:compliment_hot,
+$1:compliment_more,$1:compliment_profile,$1:compliment_cute ,$1:compliment_list ,$1:compliment_note ,$1:compliment_plain ,$1:compliment_cool ,$1:compliment_funny  ,$1:compliment_writer ,
+	$1:compliment_photos
+	from WEATHER.PUBLIC.YELP_ACADEMIC_DATASET_USER;
+
+// ----------------------------------------------------------------------------------------------------   
+// ------------------------------------------------------------------------------------------------------------------------------------------
+
+create or replace TABLE ODS.PUBLIC.ACADEMIC_BUSINESS 
+(
+business_id varchar(50) primary key,
+name varchar (100),
+address varchar(150),
+city   varchar(100),
+state varchar(10),
+postal_code  varchar(10),
+latitude  float,
+longitude float ,
+stars float,
+review_count INT ,
+is_open boolean,
+attributes  varchar,
+categories varchar,
+hours  varchar
+);
+
+insert into ODS.PUBLIC.ACADEMIC_BUSINESS( business_id , name ,address ,city ,state ,postal_code ,latitude ,longitude ,stars ,review_count ,
+is_open ,attributes ,categories ,hours  )
+select $1:business_id  ,$1:name   ,$1:address ,$1:city  ,$1:state ,$1:postal_code,$1:latitude ,$1:longitude,$1:stars ,$1:review_count 
+  ,iff(upper($1:"is_open")= 'TRUE' or upper($1:"is_open")= 'FALSE',$1:"is_open",Null)as is_open
+   ,$1:attributes ,$1:categories ,$1:hours
+  from WEATHER.PUBLIC.YELP_ACADEMIC_DATASET_BUSINESS;
+  
+//------------------------------------------------------------------------------
+//YELP_ACADEMIC_DATASET_TIP
+
+create table ODS.PUBLIC.ACADEMIC_TIP
+(
+	user_id  varchar(22) primary key ,
+	business_id   varchar(22) ,
+	compliment_count INT , 
+	mytext    varchar ,
+	mydate   DATE 
+);
+
+insert into ODS.PUBLIC.ACADEMIC_TIP(user_id  ,business_id ,compliment_count  , mytext , mydate )
+select 
+$1:user_id  ,
+$1:business_id  ,
+$1:compliment_count ,
+$1:text ,
+$1:"date"
+from WEATHER.PUBLIC.YELP_ACADEMIC_DATASET_TIP;  
+
+// -----------------------------------------------------------------------
+// YELP_ACADEMIC_DATASET_REVIEW
+
+create or replace TABLE ODS.PUBLIC.ACADEMIC_REVIEW
+(
+	review_id  varchar(22)  primary key   ,
+	user_id  varchar(22) ,
+	business_id   varchar(22) ,
+	stars   INT ,
+	useful   INT ,
+	funny  INT ,
+	cool   INT ,
+	mytext varchar ,
+	mydate   DATE 
+	) ;
+
+	insert into ODS.PUBLIC.ACADEMIC_REVIEW( review_id ,user_id  ,business_id , stars ,useful,funny , cool , mytext , mydate )
+	select 
+	$1:review_id ,
+	$1:user_id  ,
+	$1:business_id  ,
+	$1:stars ,
+	$1:useful,
+	$1:funny , 
+	$1:cool , 
+	$1:mytext ,
+	$1:"date"
+	from WEATHER.PUBLIC.YELP_ACADEMIC_DATASET_REVIEW;
+
+//==========================================================================================================================================
+// yelp_academic_dataset_checkin
+create or replace TABLE ODS.PUBLIC.academic_checkin 
+(
+business_id varchar(22) primary key,
+mydate varchar
+);
+
+insert into ODS.PUBLIC.academic_checkin( business_id , mydate)
+select $1:business_id  ,$1:"date"
+  from WEATHER.PUBLIC.YELP_ACADEMIC_DATASET_CHECKIN;
+
+// ---------------------------------------------------------------------
+create or replace TABLE ODS.PUBLIC.COVID_FEATURES (
+
+  business_id varchar primary key,
+  highlights  varchar,
+  delivery_or_takeout boolean  ,
+  Grubhub_enabled boolean,
+  Call_To_Action_enabled    boolean ,
+  Request_Quote_Enabled boolean,
+  Covid_Banner boolean ,
+  Temporary_Closed_Until boolean ,
+  Virtual_Services_Offered boolean
+
+);
+
+insert into ODS.PUBLIC.COVID_FEATURES(  business_id,highlights ,delivery_or_takeout,
+  Grubhub_enabled ,  Call_To_Action_enabled,  Request_Quote_Enabled ,
+  Covid_Banner ,  Temporary_Closed_Until ,  Virtual_Services_Offered )
+select $1:business_id  
+  ,iff(upper($1:highlights) = 'TRUE' or upper($1:highlights) = 'FALSE', $1:"delivery or takeout" , null) as highlights
+  ,iff(upper($1:"delivery or takeout") = 'TRUE' or upper($1:"delivery or takeout") = 'FALSE', $1:"delivery or takeout" , null) as delivery_or_takeout 
+  ,iff(upper($1:"Grubhub enabled")= 'TRUE' or upper($1:"Grubhub enabled")= 'FALSE',$1:"Grubhub enabled",Null) as Grubhub_enabled
+  ,iff(upper($1:"Call To Action enabled")= 'TRUE' or upper($1:"Call To Action enabled")= 'FALSE',$1:"Call To Action enabled",Null) as Call_To_Action_enabled
+  ,iff(upper($1:"Request a Quote Enabled")= 'TRUE' or upper($1:"Request a Quote Enabled")= 'FALSE',$1:"Request a Quote Enabled",Null)as Request_Quote_Enabled
+  ,iff(upper($1:"Covid Banner")= 'TRUE' or upper($1:"Covid Banner")= 'FALSE',$1:"Covid Banner",Null)as Covid_Banner
+  ,iff(upper($1:"Temporary Closed Until")= 'TRUE' or upper($1:"Temporary Closed Until")= 'FALSE',$1:"Temporary Closed Until",Null) as Temporary_Closed_Until
+  , iff(upper($1:"Virtual Services Offered")= 'TRUE' or upper($1:"Virtual Services Offered")= 'FALSE',$1:"Virtual Services Offered",Null) as Virtual_Services_Offered
+  from WEATHER.PUBLIC.YELP_ACADEMIC_DATASET_COVID_FEATURES;
+
+//---------------------------------------------------------------------
+create or replace TABLE ODS.PUBLIC.TEMPERATURE_DEGREEF (
+	MDATE DATE primary key,
+	MIN FLOAT,
+	MAX FLOAT,
+	NORMAL_MIN FLOAT,
+	NORMAL_MAX FLOAT
+);
+
+create or replace TABLE ODS.PUBLIC.PRECIPITATION_INCH (
+	TDATE DATE ptimary key,
+	PRECIPITATION FLOAT,
+	PRECIPITATION_NORMAL FLOAT
+);
+// After creating tables then transfering data , now we have to add all the constrint 
+// ---------------------------------------------------------------------------------------------
+ALTER TABLE ACADEMIC_REVIEW ADD FOREIGN KEY (user_id) REFERENCES ACADEMIC_USER(user_id);  
+ALTER TABLE ACADEMIC_REVIEW ADD FOREIGN KEY (business_id) REFERENCES ACADEMIC_BUSINESS(business_id);  
+ALTER TABLE academic_checkin ADD FOREIGN KEY (business_id) REFERENCES ACADEMIC_BUSINESS(business_id);  
+ALTER TABLE ACADEMIC_TIP ADD FOREIGN KEY (business_id) REFERENCES ACADEMIC_BUSINESS(business_id);  
+ALTER TABLE ACADEMIC_TIP ADD FOREIGN KEY (user_id) REFERENCES ACADEMIC_USER(user_id);  
+ALTER TABLE COVID_FEATURES ADD FOREIGN KEY (business_id) REFERENCES ACADEMIC_BUSINESS(business_id);  
+
+ALTER TABLE ACADEMIC_REVIEW ADD FOREIGN KEY (mydate) REFERENCES TEMPERATURE_DEGREEF(MDATE);  
+ALTER TABLE ACADEMIC_REVIEW ADD FOREIGN KEY (mydate) REFERENCES PRECIPITATION_INCH(TDATE);  
+
+
+
+
+
+

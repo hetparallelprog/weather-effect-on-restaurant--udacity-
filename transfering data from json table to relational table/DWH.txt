@@ -1,0 +1,191 @@
+Create or replace warehouse DWH ;
+// ------------------------------------------------------------------
+create or replace table ODS.DWH.Dim_USER
+(
+	user_id  varchar(22) primary key ,
+	name varchar (50) ,
+	review_count INT ,
+	yelping_since DATE ,
+	useful INT ,
+	funny INT ,
+	cool INT , 
+	elite varchar , 
+	friends varchar ,
+	fans INT ,
+	average_stars float ,
+	compliment_more INT ,
+	compliment_hot INT ,
+	compliment_profile INT ,
+	compliment_cute INT ,
+	compliment_list  INT ,
+	compliment_note  INT ,
+	compliment_plain  INT ,
+	compliment_cool  INT ,
+	compliment_funny  INT ,
+	compliment_writer  INT ,
+	compliment_photos  INT ,
+);
+
+insert into ODS.DWH.DIM_USER( user_id,name,review_count,yelping_since,useful,funny,cool,elite,friends ,fans ,average_stars,compliment_hot,
+	compliment_more,compliment_profile,compliment_cute ,compliment_list ,compliment_note ,compliment_plain ,compliment_cool ,compliment_funny  ,compliment_writer ,
+	compliment_photos  )
+select distinct user_id,name,review_count,yelping_since,useful,funny,cool,elite,friends ,fans ,average_stars,compliment_hot,
+compliment_more,compliment_profile,compliment_cute ,compliment_list ,compliment_note ,compliment_plain ,compliment_cool ,compliment_funny  ,compliment_writer ,
+	compliment_photos
+	from ODS.PUBLIC.ACADEMIC_USER;
+
+// ----------------------------------------------------------------------------------------------------   
+// ------------------------------------------------------------------------------------------------------------------------------------------
+
+create or replace TABLE ODS.DWH.DIM_BUSINESS 
+(
+business_id varchar(50) primary key,
+name varchar (100),
+address varchar(150),
+city   varchar(100),
+state varchar(10),
+postal_code  varchar(10),
+latitude  float,
+longitude float ,
+stars float,
+review_count INT ,
+is_open boolean,
+attributes  varchar,
+categories varchar,
+hours  varchar
+);
+
+insert into ODS.DWH.DIM_BUSINESS( business_id , name ,address ,city ,state ,postal_code ,latitude ,longitude ,stars ,review_count ,
+is_open ,attributes ,categories ,hours  )
+select business_id  ,name   ,address ,city  ,state ,postal_code,latitude ,longitude,stars ,review_count 
+  ,iff(upper("is_open")= 'TRUE' or upper("is_open")= 'FALSE',"is_open",Null)as is_open
+   ,attributes ,categories ,hours
+  from ODS.PUBLIC.ACADEMIC_BUSINESS;
+  
+//------------------------------------------------------------------------------
+//YELP_ACADEMIC_DATASET_TIP
+
+create table ODS.PUBLIC.DIM_TIP
+(
+	user_id  varchar(22) primary key ,
+	business_id   varchar(22) ,
+	compliment_count INT , 
+	mytext    varchar ,
+	mydate   DATE 
+);
+
+insert into ODS.DWH.DIM_TIP(user_id  ,business_id ,compliment_count  , mytext , mydate )
+select distinct
+user_id  ,
+business_id  ,
+compliment_count ,
+text ,
+"date"
+from ODS.Public.ACADEMIC_TIP;  
+
+// -----------------------------------------------------------------------
+// YELP_ACADEMIC_DATASET_REVIEW
+
+create or replace TABLE ODS.DWH.FACT_REVIEW
+(
+review_id  varchar(22)  primary key   ,
+user_id  varchar(22) ,
+business_id   varchar(22) ,
+stars   INT ,
+useful   INT ,
+funny  INT ,
+cool   INT ,
+mytext varchar ,
+mydate   DATE 
+) ;
+
+insert into ODS.PUBLIC.FACT_REVIEW( review_id ,user_id  ,business_id , stars ,useful,funny , cool , mytext , mydate )
+select distinct  
+review_id ,
+user_id  ,
+business_id  ,
+stars ,
+useful,
+funny , 
+cool , 
+mytext ,
+"date"
+from ODS.Public.ACADEMIC_REVIEW;
+
+
+//==========================================================================================================================================
+// yelp_academic_dataset_checkin
+create or replace TABLE ODS.PUBLIC.DIM_checkin 
+(
+business_id varchar(22) primary key,
+mydate varchar
+);
+
+insert into ODS.PUBLIC.DIM_checkin( business_id , mydate)
+select distinct business_id  ,"date"
+  from ODS.Public.academic_checkin;
+
+// ---------------------------------------------------------------------
+create or replace TABLE ODS.DWH.DIM_COVID_FEATURES (
+
+  business_id varchar primary key,
+  highlights  varchar,
+  delivery_or_takeout boolean  ,
+  Grubhub_enabled boolean,
+  Call_To_Action_enabled    boolean ,
+  Request_Quote_Enabled boolean,
+  Covid_Banner boolean ,
+  Temporary_Closed_Until boolean ,
+  Virtual_Services_Offered boolean
+
+);
+
+insert into ODS.PUBLIC.DIM_COVID_FEATURES(  business_id,highlights ,delivery_or_takeout, Grubhub_enabled ,  Call_To_Action_enabled,  Request_Quote_Enabled ,
+  Covid_Banner ,  Temporary_Closed_Until ,  Virtual_Services_Offered )
+select distinct business_id  
+  ,iff(upper(highlights) = 'TRUE' or upper(highlights) = 'FALSE', "delivery or takeout" , null) as highlights
+  ,iff(upper("delivery or takeout") = 'TRUE' or upper("delivery or takeout") = 'FALSE', "delivery or takeout" , null) as delivery_or_takeout 
+  ,iff(upper("Grubhub enabled")= 'TRUE' or upper("Grubhub enabled")= 'FALSE',"Grubhub enabled",Null) as Grubhub_enabled
+  ,iff(upper("Call To Action enabled")= 'TRUE' or upper("Call To Action enabled")= 'FALSE',"Call To Action enabled",Null) as Call_To_Action_enabled
+  ,iff(upper("Request a Quote Enabled")= 'TRUE' or upper("Request a Quote Enabled")= 'FALSE',"Request a Quote Enabled",Null)as Request_Quote_Enabled
+  ,iff(upper("Covid Banner")= 'TRUE' or upper("Covid Banner")= 'FALSE',"Covid Banner",Null)as Covid_Banner
+  ,iff(upper("Temporary Closed Until")= 'TRUE' or upper("Temporary Closed Until")= 'FALSE',"Temporary Closed Until",Null) as Temporary_Closed_Until
+  , iff(upper("Virtual Services Offered")= 'TRUE' or upper("Virtual Services Offered")= 'FALSE',"Virtual Services Offered",Null) as Virtual_Services_Offered
+  from ODS.PUBLIC.COVID_FEATURES;
+
+//---------------------------------------------------------------------
+
+create or replace TABLE ODS.PUBLIC.DIM_TEMPERATURE_DEGREEF (
+	MDATE DATE primary key,
+	MIN FLOAT,
+	MAX FLOAT,
+	NORMAL_MIN FLOAT,
+	NORMAL_MAX FLOAT
+);
+
+insert into ODS.DWH.DIM_TEMPERATURE_DEGREEF(  MIN ,	MAX ,	NORMAL_MIN ,	NORMAL_MAX  )
+select distinct MIN , 	MAX ,	NORMAL_MIN ,	NORMAL_MAX 
+from ODS.Public.TEMPERATURE_DEGREEF;
+// -----------------------------------------------------------------------------------
+create or replace TABLE ODS.DWH.Dim_PRECIPITATION_INCH (
+	TDATE DATE primary key,
+	PRECIPITATION FLOAT,
+	PRECIPITATION_NORMAL FLOAT
+);
+
+
+insert into ODS.DWH.Dim_PRECIPITATION_INCH(  TDATE ,RECIPITATION ,	PRECIPITATION_NORMAL   )
+select distinct TDATE ,
+	PRECIPITATION ,
+	PRECIPITATION_NORMAL 
+
+from ODS.Public.PRECIPITATION_INCH;
+
+
+// After creating tables then transfering data , now we have to add all the constrint 
+
+
+
+
+
+
