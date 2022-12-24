@@ -1,0 +1,6 @@
+select a.name as Business_Name, b.MIN as Min_Temperature, b.MAX as MAx_Temperature, b.NORMAL_MIN as Normal_Temperature,
+b.NORMAL_MAX as Max_Temperature , b.PRECIPITATION , c.stars , c.useful
+c.funny ,c.cool 
+from  DIM_BUSINESS as a 
+join DIM_TEMPERATURE_PRECIPITATION as b on a.business_id =b.business_id
+join Fact_Review  as c  on c.business_id = a.business_id
